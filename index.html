@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reelpass</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0b0f">
+<meta property="og:title" content="Sent you a video 🎬">
+<meta property="og:description" content="Tap to watch. No app or account needed.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root {
+    --bg: #0b0b0f; --card: #17171d; --line: #2a2a33; --text: #f3f3f6; --dim: #9a9aa8;
+    --accent: #25d366; --accent-ink: #062b14; --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100dvh; -webkit-tap-highlight-color: transparent;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  [hidden] { display: none !important; }
+  main { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 15px; margin: 0 0 10px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  p { margin: 0 0 10px; }
+  a { color: var(--accent); }
+  .dim { color: var(--dim); }
+  .small { font-size: 13.5px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 16px; }
+  .chip { display: inline-block; font-size: 13px; color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+
+  button, .btn {
+    font: inherit; font-weight: 600; color: var(--text); background: #24242c; border: 1px solid var(--line);
+    border-radius: 12px; padding: 11px 14px; cursor: pointer; text-decoration: none; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+  }
+  button.primary, .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button:active, .btn:active { transform: scale(0.98); }
+  input {
+    font: inherit; color: var(--text); background: #0f0f14; border: 1px solid var(--line); border-radius: 12px;
+    padding: 11px 12px; width: 100%; min-width: 0; min-height: 44px;
+  }
+  input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 140px; }
+  .err { color: var(--danger); font-size: 14px; margin-top: 8px; }
+
+  /* People */
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 14px; }
+  .person {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px; text-decoration: none;
+    color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 16px; font-weight: 600;
+    text-align: center; overflow-wrap: anywhere;
+  }
+  .person:active { transform: scale(0.97); }
+  .av {
+    width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 700;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .person.other .av { background: #2c2c36; color: var(--text); }
+
+  /* Contact management list */
+  .list { list-style: none; margin: 0 0 12px; padding: 0; }
+  .list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .list li > div { flex: 1; min-width: 0; }
+  .list .x { min-height: 36px; padding: 4px 12px; flex: none; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs button { flex: 1; padding: 8px; min-height: 40px; }
+  .tabs button[aria-selected="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  ol { margin: 0; padding-left: 22px; }
+  ol li { margin-bottom: 8px; }
+  code { background: #0f0f14; border: 1px solid var(--line); border-radius: 8px; padding: 2px 6px; font-size: 13px; word-break: break-all; }
+
+  /* Viewer */
+  body[data-mode="view"] main { padding: 12px 8px 32px; max-width: 560px; }
+  #stage { display: flex; flex-direction: column; align-items: center; min-height: 60dvh; justify-content: center; }
+  #stage.ready { min-height: 0; justify-content: flex-start; }
+  #stage iframe { max-width: 100% !important; border-radius: 12px !important; }
+  #stage blockquote { all: unset; }
+  #stage blockquote a { display: none; }
+  .spin { width: 34px; height: 34px; border: 3px solid var(--line); border-top-color: var(--text); border-radius: 50%; animation: s 0.8s linear infinite; }
+  #stage.ready .spin { display: none; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
+  #fallback { text-align: center; margin-top: 18px; }
+</style>
+</head>
+<body>
+
+<!-- Viewer: what the person receiving the link sees -->
+<main id="view" hidden>
+  <div id="stage"><div class="spin" role="status" aria-label="Loading"></div></div>
+  <p id="fallback" class="dim small" hidden><span id="fallbackMsg">Not loading?</span> <a id="orig" rel="noopener noreferrer">Open the original</a></p>
+</main>
+
+<!-- Share: what the sender sees after picking Reelpass in the share sheet -->
+<main id="share" hidden>
+  <span class="chip" id="kind"></span>
+  <h1>Send to</h1>
+  <div class="people" id="people"></div>
+  <div class="row" style="margin-top:16px">
+    <button id="copy" type="button">Copy link</button>
+    <a class="btn" id="preview" target="_blank" rel="noopener">Preview</a>
+  </div>
+  <div class="card">
+    <h2>Add a person</h2>
+    <div data-contact-form></div>
+  </div>
+</main>
+
+<!-- Home: one-time setup for the sender -->
+<main id="home" hidden>
+  <h1>Reelpass</h1>
+  <p class="dim">Send Instagram reels and X posts to people on WhatsApp who don't have those apps.</p>
+  <p class="err" id="homeErr" hidden></p>
+
+  <div class="card">
+    <h2>1 · Add it to your share menu</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="android">Android</button>
+      <button type="button" role="tab" data-tab="ios">iPhone</button>
+    </div>
+    <div data-panel="android">
+      <ol>
+        <li>Open this page in <b>Chrome</b> and install it: <button type="button" id="install" class="primary" hidden>Install</button>
+          <span id="installHint">menu <b>⋮</b> → <b>Add to Home screen</b> → <b>Install</b>.</span>
+          <span id="installed" hidden>installed ✓</span></li>
+        <li>On a reel or post: <b>Share</b> → <b>Share to…</b> (or <b>More</b>) → <b>Reelpass</b>.</li>
+        <li>Tap a person. WhatsApp opens on their chat with the link ready, then hit send.</li>
+      </ol>
+    </div>
+    <div data-panel="ios" hidden>
+      <p class="small dim">iPhones don't let websites into the share menu, so a tiny Shortcut does it (one time).</p>
+      <ol>
+        <li>Open the <b>Shortcuts</b> app → <b>+</b> → name it <b>Reelpass</b>.</li>
+        <li>Tap <b>ⓘ</b> → turn on <b>Show in Share Sheet</b>. Set it to receive <b>URLs</b> and <b>Text</b>.</li>
+        <li>Add the action <b>Open URLs</b>. In its field paste this, then add the <b>Shortcut Input</b> variable right after it:<br>
+          <code id="iosUrl"></code> <button type="button" id="copyIos" style="min-height:34px;padding:4px 10px;margin-top:6px">Copy</button></li>
+        <li>On a reel or post: <b>Share</b> → <b>Share to…</b> → <b>Reelpass</b>, then tap a person.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Your people</h2>
+    <ul class="list" id="list"></ul>
+    <div data-contact-form></div>
+    <p class="small dim" style="margin-top:10px">Saved only on this phone. Nothing is uploaded anywhere.</p>
+  </div>
+
+  <div class="card">
+    <h2>Or paste a link</h2>
+    <form id="paste" class="row">
+      <input id="pasteIn" inputmode="url" placeholder="Instagram or X link" aria-label="Instagram or X link" autocomplete="off">
+      <button class="primary" style="flex:0 0 auto">Send</button>
+    </form>
+  </div>
+</main>
+
+<template id="contactForm">
+  <form class="cform">
+    <div class="row">
+      <input name="name" placeholder="Name" aria-label="Name" autocomplete="off" required>
+      <input name="phone" type="tel" inputmode="tel" placeholder="WhatsApp number" aria-label="WhatsApp number" autocomplete="off" required>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="primary">Add</button>
+      <button type="button" data-pick hidden>Pick from contacts</button>
+    </div>
+    <p class="err" hidden></p>
+    <p class="small dim" style="margin:8px 0 0">Use the full number with country code (+44…). Numbers starting with 0 are treated as Israeli (+972).</p>
+  </form>
+</template>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const BASE = location.origin + location.pathname.replace(/index\.html$/, '');
+  const STORE = 'reelpass.contacts';
+  const DEFAULT_CC = '972';
+
+  // ---------- Link parsing ----------
+  const IG_RE = /(?:instagram\.com|instagr\.am)\/(?:(?!share\/)[A-Za-z0-9._]+\/)?(share\/)?(reels?|p|tv)\/([A-Za-z0-9_-]{4,40})/i;
+  const X_RE = /\b(?:twitter|x|fxtwitter|vxtwitter|fixupx)\.com\/(?:i\/web|\w+)\/status(?:es)?\/(\d{5,25})/i;
+
+  function parseLink(text) {
+    let m = IG_RE.exec(text);
+    if (m) {
+      const reel = /^reel/i.test(m[2]);
+      if (m[1]) return { k: 's', id: (reel ? 'reel' : 'p') + '.' + m[3], label: 'Instagram ' + (reel ? 'reel' : 'post') };
+      return { k: reel ? 'r' : 'p', id: m[3], label: 'Instagram ' + (reel ? 'reel' : 'post') };
+    }
+    m = X_RE.exec(text);
+    if (m) return { k: 'x', id: m[1], label: 'X post' };
+    return null;
+  }
+
+  // Everything that arrived in the URL (share-target params, ?share=…, or an un-encoded link), decoded.
+  function incoming() {
+    const raw = location.search.slice(1) + ' ' + location.hash.slice(1);
+    try { return decodeURIComponent(raw.replace(/\+/g, ' ')); } catch { return raw; }
+  }
+
+  const VALID = {
+    r: /^[A-Za-z0-9_-]{4,40}$/, p: /^[A-Za-z0-9_-]{4,40}$/,
+    s: /^(reel|p)\.[A-Za-z0-9_-]{4,40}$/, x: /^\d{5,25}$/,
+  };
+  function viewerTarget() {
+    const q = new URLSearchParams(location.search);
+    for (const k of Object.keys(VALID)) {
+      const v = q.get(k);
+      if (v && VALID[k].test(v)) return { k, id: v };
+    }
+    return null;
+  }
+
+  function originalUrl({ k, id }) {
+    if (k === 'x') return 'https://x.com/i/status/' + id;
+    if (k === 'r') return 'https://www.instagram.com/reel/' + id + '/';
+    if (k === 'p') return 'https://www.instagram.com/p/' + id + '/';
+    return 'https://www.instagram.com/share/' + id.replace('.', '/') + '/';
+  }
+
+  // ---------- Viewer ----------
+  function showViewer(t) {
+    document.body.dataset.mode = 'view';
+    document.title = 'Sent you a video';
+    $('#view').hidden = false;
+    const stage = $('#stage');
+    const orig = originalUrl(t);
+    $('#orig').href = orig;
+
+    let settled = false;
+    const ready = () => { settled = true; stage.classList.add('ready'); };
+    const fail = (msg) => {
+      settled = true; stage.classList.add('ready');
+      if (msg) $('#fallbackMsg').textContent = msg;
+      $('#fallback').hidden = false;
+    };
+    // If an embed never appears (blocked script, slow network), offer the original.
+    setTimeout(() => { if (!settled) $('#fallback').hidden = false; }, 9000);
+
+    const load = (src, onload) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true; s.onload = onload;
+      s.onerror = () => fail("Couldn't load the player.");
+      document.head.append(s);
+    };
+
+    if (t.k === 'x') {
+      load('https://platform.twitter.com/widgets.js', () => {
+        if (!window.twttr || !twttr.ready) return fail("Couldn't load the player.");
+        twttr.ready((tw) => {
+          tw.widgets.createTweet(t.id, stage, { theme: 'dark', dnt: true, conversation: 'none', align: 'center' })
+            .then((node) => node ? ready() : fail("This post isn't available."))
+            .catch(() => fail("Couldn't load the player."));
+        });
+      });
+    } else {
+      const bq = document.createElement('blockquote');
+      bq.className = 'instagram-media';
+      bq.setAttribute('data-instgrm-permalink', orig);
+      bq.setAttribute('data-instgrm-version', '14');
+      const a = document.createElement('a'); a.href = orig; a.textContent = 'Open on Instagram';
+      bq.append(a);
+      stage.append(bq);
+      new MutationObserver((_, o) => { if ($('iframe', stage)) { o.disconnect(); ready(); } })
+        .observe(stage, { childList: true, subtree: true });
+      load('https://www.instagram.com/embed.js', () => {
+        if (window.instgrm && instgrm.Embeds) instgrm.Embeds.process();
+      });
+    }
+  }
+
+  // ---------- Contacts (kept in this browser only) ----------
+  function loadContacts() {
+    try {
+      const v = JSON.parse(localStorage.getItem(STORE));
+      return Array.isArray(v) ? v.filter((c) => c && typeof c.name === 'string' && /^\d{8,15}$/.test(c.phone)) : [];
+    } catch { return []; }
+  }
+  function saveContacts(list) {
+    try { localStorage.setItem(STORE, JSON.stringify(list)); return true; } catch { return false; }
+  }
+  function normPhone(s) {
+    let d = String(s).replace(/\D/g, '');
+    if (d.startsWith('00')) d = d.slice(2);
+    else if (d.startsWith('0')) d = DEFAULT_CC + d.slice(1);
+    return d;
+  }
+  function addContact(name, phone) {
+    name = String(name).trim().slice(0, 40);
+    const p = normPhone(phone);
+    if (!name) return 'Add a name.';
+    if (!/^\d{8,15}$/.test(p)) return "That number doesn't look complete. Include the country code.";
+    const list = loadContacts().filter((c) => c.phone !== p);
+    list.push({ name, phone: p });
+    return saveContacts(list) ? null : "Couldn't save on this device (private browsing?).";
+  }
+
+  let rerender = () => {};
+  function mountContactForms() {
+    for (const host of $$('[data-contact-form]')) {
+      host.append($('#contactForm').content.cloneNode(true));
+      const form = $('form', host), err = $('.err', form);
+      const show = (msg) => { err.textContent = msg || ''; err.hidden = !msg; };
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const msg = addContact(form.name.value, form.phone.value);
+        show(msg);
+        if (!msg) { form.reset(); rerender(); }
+      });
+      const pick = $('[data-pick]', form);
+      if (navigator.contacts && navigator.contacts.select) {
+        pick.hidden = false;
+        pick.addEventListener('click', async () => {
+          try {
+            const res = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+            const c = res && res[0];
+            if (!c || !c.tel || !c.tel.length) return;
+            const msg = addContact((c.name && c.name[0]) || 'Friend', c.tel[0]);
+            show(msg);
+            if (!msg) rerender();
+          } catch { /* cancelled */ }
+        });
+      }
+    }
+  }
+
+  // ---------- Share ----------
+  function showShare(t) {
+    document.body.dataset.mode = 'share';
+    $('#share').hidden = false;
+    const link = BASE + '?' + t.k + '=' + encodeURIComponent(t.id);
+    const text = encodeURIComponent(link);
+    $('#kind').textContent = t.label;
+    $('#preview').href = link;
+
+    const copy = $('#copy');
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(link); copy.textContent = 'Copied ✓'; }
+      catch { prompt('Copy this link', link); }
+      setTimeout(() => { copy.textContent = 'Copy link'; }, 1500);
+    });
+
+    const person = (name, href, other) => {
+      const a = document.createElement('a');
+      a.className = 'person' + (other ? ' other' : '');
+      a.href = href; a.rel = 'noopener';
+      const av = document.createElement('span'); av.className = 'av'; av.setAttribute('aria-hidden', 'true');
+      av.textContent = other ? '…' : ([...name][0] || '?').toUpperCase();
+      const nm = document.createElement('span'); nm.textContent = name;
+      a.append(av, nm);
+      return a;
+    };
+    rerender = () => {
+      const box = $('#people');
+      box.replaceChildren(
+        ...loadContacts().map((c) => person(c.name, 'https://wa.me/' + c.phone + '?text=' + text)),
+        // No number: WhatsApp shows its own chat picker.
+        person('Someone else', 'https://wa.me/?text=' + text, true),
+      );
+    };
+    rerender();
+  }
+
+  // ---------- Home ----------
+  function showHome(errMsg) {
+    document.body.dataset.mode = 'home';
+    $('#home').hidden = false;
+    if (errMsg) { $('#homeErr').textContent = errMsg; $('#homeErr').hidden = false; }
+
+    // Platform tabs
+    const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const select = (name) => {
+      for (const b of $$('[data-tab]')) b.setAttribute('aria-selected', String(b.dataset.tab === name));
+      for (const p of $$('[data-panel]')) p.hidden = p.dataset.panel !== name;
+    };
+    for (const b of $$('[data-tab]')) b.addEventListener('click', () => select(b.dataset.tab));
+    select(isIos ? 'ios' : 'android');
+
+    // Install (Android / Chrome)
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (standalone) { $('#installHint').hidden = true; $('#installed').hidden = false; }
+    let deferred = null;
+    addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault(); deferred = e;
+      $('#install').hidden = false; $('#installHint').hidden = true;
+    });
+    $('#install').addEventListener('click', async () => {
+      if (!deferred) return;
+      deferred.prompt(); await deferred.userChoice.catch(() => {});
+      deferred = null; $('#install').hidden = true;
+    });
+    addEventListener('appinstalled', () => { $('#install').hidden = true; $('#installHint').hidden = true; $('#installed').hidden = false; });
+
+    // iOS shortcut URL
+    const iosUrl = BASE + '?share=';
+    $('#iosUrl').textContent = iosUrl;
+    $('#copyIos').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(iosUrl); $('#copyIos').textContent = 'Copied ✓'; }
+      catch { prompt('Copy this', iosUrl); }
+    });
+
+    // Contact list
+    rerender = () => {
+      const list = loadContacts();
+      $('#list').replaceChildren(...list.map((c) => {
+        const li = document.createElement('li');
+        const d = document.createElement('div');
+        const n = document.createElement('div'); n.textContent = c.name; n.style.fontWeight = '600';
+        const p = document.createElement('div'); p.className = 'small dim'; p.textContent = '+' + c.phone;
+        d.append(n, p);
+        const x = document.createElement('button');
+        x.type = 'button'; x.className = 'x'; x.textContent = 'Remove'; x.setAttribute('aria-label', 'Remove ' + c.name);
+        x.addEventListener('click', () => { saveContacts(loadContacts().filter((o) => o.phone !== c.phone)); rerender(); });
+        li.append(d, x);
+        return li;
+      }));
+    };
+    rerender();
+
+    // Paste a link
+    $('#paste').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = $('#pasteIn').value.trim();
+      if (!parseLink(v)) { $('#homeErr').textContent = "That doesn't look like an Instagram or X post link."; $('#homeErr').hidden = false; return; }
+      location.href = BASE + '?share=' + encodeURIComponent(v);
+    });
+  }
+
+  // ---------- Route ----------
+  const view = viewerTarget();
+  if (view) {
+    showViewer(view);
+  } else {
+    mountContactForms();
+    const text = incoming();
+    const t = parseLink(text);
+    if (t) showShare(t);
+    else showHome(/(^|[&\s])(share|text|url|title)=\S/.test(location.search.slice(1)) ? "Couldn't find an Instagram or X post link in what you shared." : '');
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
